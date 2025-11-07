@@ -1,0 +1,22 @@
+{
+  "signup": true,
+  "googleLogin": true,
+  "emailVerification": true,
+  "passwordReset": true,
+  "userProfile": true,
+  "favorites": true,
+  "comments": true,
+  "rating": true,
+  "tags": true,
+  "sortOptions": true,
+  "reportGraph": true,
+  "adminModeration": true,
+  "graphDownload": true,
+  "embedCode": true,
+  "adsense": false,
+  "lazyLoading": true,
+  "offlineSupport": true,
+  "pushNotifications": true,
+  "seoMetaTags": true,
+  "bulkUpload": true
+}
