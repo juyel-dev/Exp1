@@ -1,0 +1,30 @@
+<div class="form-group">
+    <label class="form-label">Email</label>
+    <input type="email" class="form-input" id="login-email" placeholder="Enter your email">
+</div>
+
+<div class="form-group">
+    <label class="form-label">Password</label>
+    <input type="password" class="form-input" id="login-password" placeholder="Enter your password">
+</div>
+
+<button class="btn w-full mb-4" onclick="handleLogin()">Login</button>
+
+{{#if Features.googleLogin}}
+<button class="btn btn-outline w-full mb-4" onclick="handleGoogleLogin()">
+    <i class="fab fa-google"></i> Sign in with Google
+</button>
+{{/if}}
+
+{{#if Features.signup}}
+<p class="text-center mt-4">
+    Don't have an account? 
+    <a href="#" onclick="showSignup()" class="text-primary font-semibold">Sign up</a>
+</p>
+{{/if}}
+
+{{#if Features.passwordReset}}
+<p class="text-center mt-2">
+    <a href="#" onclick="showPasswordReset()" class="text-sm text-primary">Forgot password?</a>
+</p>
+{{/if}}
