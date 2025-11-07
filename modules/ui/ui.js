@@ -1,84 +1,80 @@
-// UI Module - Provides component rendering system
 export class UIModule {
     static async init(eventBus) {
+        console.log('🎨 UI Module initializing...');
         this.eventBus = eventBus;
-        this.components = new Map();
         
-        console.log('🎨 UI Module initialized');
-        
-        // Register core UI events
+        // Basic page rendering
         eventBus.on('navigate', (page) => this.renderPage(page));
-        eventBus.on('user-changed', (user) => this.updateUI(user));
         
+        console.log('✅ UI Module ready');
         return this;
     }
 
-    static async renderComponent(componentName, data = {}) {
-        try {
-            const html = await fetch(`components/${componentName}.html`).then(r => r.text());
-            let processedHTML = html;
-            
-            // Data binding: {{variable}}
-            processedHTML = processedHTML.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-                return data[key] || '';
-            });
-            
-            // Feature conditionals: {{#if feature}}content{{/if}}
-            processedHTML = processedHTML.replace(/\{\{#if (\w+)\}\}(.*?)\{\{\/if\}\}/gs, 
-                (match, feature, content) => {
-                    return window.app.features[feature]?.enabled ? content : '';
-                });
-            
-            return processedHTML;
-            
-        } catch (error) {
-            console.error(`❌ Failed to render ${componentName}:`, error);
-            return `<div class="error">Failed to load ${componentName}</div>`;
-        }
-    }
-
-    static async mount(selector, componentName, data = {}) {
-        const element = document.querySelector(selector);
-        if (element) {
-            element.innerHTML = await this.renderComponent(componentName, data);
-            this.initializeEventListeners(element);
-        }
-    }
-
-    static initializeEventListeners(container) {
-        // Auto-initialize components with data attributes
-        container.querySelectorAll('[data-component]').forEach(element => {
-            const componentName = element.getAttribute('data-component');
-            this.initializeComponent(componentName, element);
-        });
-    }
-
-    static async initializeComponent(name, element) {
-        // Component-specific initialization logic
-        switch (name) {
-            case 'navigation':
-                await this.initializeNavigation(element);
+    static async renderPage(page) {
+        const main = document.getElementById('main-content');
+        
+        switch(page) {
+            case 'home':
+                main.innerHTML = await this.renderHomePage();
                 break;
-            case 'search':
-                await this.initializeSearch(element);
+            case 'graphs':
+                main.innerHTML = await this.renderGraphsPage();
                 break;
-            // Add more components as needed
+            default:
+                main.innerHTML = await this.renderHomePage();
         }
     }
 
-    static async initializeNavigation(element) {
-        // Navigation initialization logic
-        element.addEventListener('click', (e) => {
-            if (e.target.matches('[data-page]')) {
-                e.preventDefault();
-                const page = e.target.getAttribute('data-page');
-                this.eventBus.emit('navigate', page);
-            }
-        });
+    static async renderHomePage() {
+        return `
+            <section class="hero">
+                <div class="container">
+                    <h1 class="text-4xl font-bold mb-4">Welcome to GraphzLive</h1>
+                    <p class="text-xl mb-6">The world's best educational graph platform</p>
+                    <button class="btn btn-secondary" onclick="app.eventBus.emit('navigate', 'graphs')">
+                        <i class="fas fa-rocket"></i> Explore Graphs
+                    </button>
+                </div>
+            </section>
+        `;
+    }
+
+    static async renderGraphsPage() {
+        return `
+            <section class="container p-6">
+                <h1 class="text-3xl font-bold mb-6">Graphs Gallery</h1>
+                <div class="graph-grid">
+                    ${this.renderGraphCards()}
+                </div>
+            </section>
+        `;
+    }
+
+    static renderGraphCards() {
+        const sampleGraphs = [
+            { name: "Wave Physics", subject: "Physics", views: 1247 },
+            { name: "Chemical Bonds", subject: "Chemistry", views: 856 },
+            { name: "DNA Structure", subject: "Biology", views: 1542 }
+        ];
+
+        return sampleGraphs.map(graph => `
+            <div class="graph-card">
+                <div class="graph-image">
+                    <i class="fas fa-chart-line fa-3x"></i>
+                </div>
+                <div class="graph-content">
+                    <h3 class="font-semibold mb-2">${graph.name}</h3>
+                    <p class="text-sm text-gray mb-4">${graph.subject} visualization</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray">${graph.views} views</span>
+                        <button class="btn btn-sm">View</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
     }
 }
 
-// Module exports
 export async function init(eventBus) {
     return await UIModule.init(eventBus);
 }
