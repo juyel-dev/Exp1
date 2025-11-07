@@ -1,22 +1,29 @@
 {
-  "signup": true,
-  "googleLogin": true,
-  "emailVerification": false,
-  "passwordReset": true,
-  "userProfile": true,
-  "favorites": true,
-  "comments": false,
-  "rating": false,
-  "tags": true,
-  "sortOptions": true,
-  "reportGraph": false,
-  "adminModeration": false,
-  "graphDownload": true,
-  "embedCode": false,
-  "adsense": false,
-  "lazyLoading": true,
-  "offlineSupport": false,
-  "pushNotifications": false,
-  "seoMetaTags": false,
-  "bulkUpload": false
+  "auth": {
+    "enabled": true,
+    "version": "1.0.0",
+    "dependencies": ["ui"],
+    "css": "modules/auth/auth.css",
+    "module": "modules/auth/auth.js"
+  },
+  "graphs": {
+    "enabled": true, 
+    "version": "1.0.0",
+    "dependencies": ["auth", "ui"],
+    "css": "modules/graphs/graphs.css",
+    "module": "modules/graphs/graphs.js"
+  },
+  "ui": {
+    "enabled": true,
+    "version": "1.0.0",
+    "css": "modules/ui/ui.css",
+    "module": "modules/ui/ui.js"
+  },
+  "favorites": {
+    "enabled": false,
+    "version": "0.1.0",
+    "dependencies": ["auth", "graphs"],
+    "css": "modules/favorites/favorites.css",
+    "module": "modules/favorites/favorites.js"
+  }
 }
