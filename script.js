@@ -42,10 +42,7 @@ async function initApp() {
 async function loadComponents() {
     const componentFiles = [
         'graph-card',
-        'auth-modal',
-        'comment-box',
-        'profile-page',
-        'admin-panel'
+        'auth-modal'
     ];
     
     for (const file of componentFiles) {
@@ -67,15 +64,6 @@ function initFeatures() {
         initAuthSystem();
     }
     
-    if (Features.emailVerification) {
-        initEmailVerification();
-    }
-    
-    if (Features.passwordReset) {
-        initPasswordReset();
-    }
-    
-    // User Features
     if (Features.userProfile) {
         initUserProfile();
     }
@@ -84,52 +72,8 @@ function initFeatures() {
         initFavorites();
     }
     
-    if (Features.comments) {
-        initComments();
-    }
-    
-    if (Features.rating) {
-        initRating();
-    }
-    
-    if (Features.tags) {
-        initTags();
-    }
-    
-    if (Features.sortOptions) {
-        initSortOptions();
-    }
-    
-    // Admin Features
-    if (Features.adminModeration) {
-        initAdminModeration();
-    }
-    
-    if (Features.bulkUpload) {
-        initBulkUpload();
-    }
-    
-    // Performance Features
-    if (Features.lazyLoading) {
-        initLazyLoading();
-    }
-    
-    if (Features.offlineSupport) {
-        initOfflineSupport();
-    }
-    
-    if (Features.pushNotifications) {
-        initPushNotifications();
-    }
-    
-    if (Features.seoMetaTags) {
-        initSEOMetaTags();
-    }
-    
-    // Monetization
-    if (Features.adsense) {
-        initAdSense();
-    }
+    // Show home page by default
+    showHome();
 }
 
 // Render App Shell
@@ -150,7 +94,6 @@ function renderAppShell() {
                         <li><a href="#" class="active" onclick="showHome()"><i class="fas fa-home"></i> Home</a></li>
                         ${Features.userProfile ? '<li><a href="#" onclick="showProfile()"><i class="fas fa-user"></i> Profile</a></li>' : ''}
                         ${Features.favorites ? '<li><a href="#" onclick="showFavorites()"><i class="fas fa-star"></i> Favorites</a></li>' : ''}
-                        <li><a href="#" onclick="showAdmin()"><i class="fas fa-user-shield"></i> Admin</a></li>
                     </ul>
                     
                     <div id="auth-buttons">
@@ -169,7 +112,6 @@ function renderAppShell() {
         <footer class="p-6" style="background: var(--dark); color: white;">
             <div class="container text-center">
                 <p>&copy; 2023 GraphzLive. All rights reserved.</p>
-                ${Features.adsense ? '<div id="ad-container"></div>' : ''}
             </div>
         </footer>
 
@@ -190,73 +132,15 @@ function renderAppShell() {
 
 // Feature Initialization Functions
 function initAuthSystem() {
-    console.log('Initializing Auth System...');
-    // Auth logic will be implemented here
-}
-
-function initEmailVerification() {
-    console.log('Initializing Email Verification...');
-}
-
-function initPasswordReset() {
-    console.log('Initializing Password Reset...');
+    console.log('🔐 Initializing Auth System...');
 }
 
 function initUserProfile() {
-    console.log('Initializing User Profile...');
+    console.log('👤 Initializing User Profile...');
 }
 
 function initFavorites() {
-    console.log('Initializing Favorites...');
-}
-
-function initComments() {
-    console.log('Initializing Comments...');
-}
-
-function initRating() {
-    console.log('Initializing Rating System...');
-}
-
-function initTags() {
-    console.log('Initializing Tags...');
-}
-
-function initSortOptions() {
-    console.log('Initializing Sort Options...');
-}
-
-function initAdminModeration() {
-    console.log('Initializing Admin Moderation...');
-}
-
-function initBulkUpload() {
-    console.log('Initializing Bulk Upload...');
-}
-
-function initLazyLoading() {
-    console.log('Initializing Lazy Loading...');
-}
-
-function initOfflineSupport() {
-    console.log('Initializing Offline Support...');
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => console.log('SW registered'))
-            .catch(error => console.log('SW registration failed'));
-    }
-}
-
-function initPushNotifications() {
-    console.log('Initializing Push Notifications...');
-}
-
-function initSEOMetaTags() {
-    console.log('Initializing SEO Meta Tags...');
-}
-
-function initAdSense() {
-    console.log('Initializing AdSense...');
+    console.log('❤️ Initializing Favorites...');
 }
 
 // UI Functions
@@ -321,7 +205,6 @@ function showAuthModal() {
             <button class="btn w-full mb-4">Login</button>
             ${Features.googleLogin ? '<button class="btn btn-outline w-full"><i class="fab fa-google"></i> Sign in with Google</button>' : ''}
             ${Features.signup ? '<p class="text-center mt-4">Don\'t have an account? <a href="#" class="text-primary">Sign up</a></p>' : ''}
-            ${Features.passwordReset ? '<p class="text-center mt-2"><a href="#" class="text-sm">Forgot password?</a></p>' : ''}
         `;
     }
     
@@ -336,93 +219,79 @@ function showProfile() {
     if (!Features.userProfile) return;
     
     const main = document.getElementById('main-content');
-    if (components['profile-page']) {
-        main.innerHTML = components['profile-page'];
-    } else {
-        main.innerHTML = `
-            <div class="container p-6">
-                <div class="profile-header">
-                    <div class="logo-icon" style="margin: 0 auto 1rem;">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h1 class="text-2xl font-bold">User Profile</h1>
-                    <p class="text-gray">user@example.com</p>
-                </div>
-                
-                <div class="profile-stats">
-                    <div class="stat-card card">
-                        <h3 class="text-lg font-semibold">Graphs Uploaded</h3>
-                        <p class="text-2xl font-bold">12</p>
-                    </div>
-                    <div class="stat-card card">
-                        <h3 class="text-lg font-semibold">Favorites</h3>
-                        <p class="text-2xl font-bold">8</p>
-                    </div>
-                    <div class="stat-card card">
-                        <h3 class="text-lg font-semibold">Comments</h3>
-                        <p class="text-2xl font-bold">23</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+    main.innerHTML = `
+        <div class="container p-6">
+            <h1 class="text-2xl font-bold mb-6">User Profile</h1>
+            <p>Profile feature is enabled but not fully implemented yet.</p>
+        </div>
+    `;
 }
 
-function showAdmin() {
+function showFavorites() {
+    if (!Features.favorites) return;
+    
     const main = document.getElementById('main-content');
-    if (components['admin-panel']) {
-        main.innerHTML = components['admin-panel'];
-    } else {
-        main.innerHTML = `
-            <div class="container p-6">
-                <h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
-                <div class="grid gap-6">
-                    ${Features.bulkUpload ? `
-                    <div class="card">
-                        <h2 class="text-xl font-semibold mb-4">Bulk Upload</h2>
-                        <input type="file" accept=".csv" class="form-input mb-4">
-                        <button class="btn">Upload CSV</button>
-                    </div>
-                    ` : ''}
-                    
-                    ${Features.adminModeration ? `
-                    <div class="card">
-                        <h2 class="text-xl font-semibold mb-4">Moderation Queue</h2>
-                        <p>No pending reports</p>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
+    main.innerHTML = `
+        <div class="container p-6">
+            <h1 class="text-2xl font-bold mb-6">My Favorites</h1>
+            <p>Favorites feature is enabled but not fully implemented yet.</p>
+        </div>
+    `;
 }
 
 function loadGraphs() {
     const grid = document.getElementById('graph-grid');
-    if (components['graph-card']) {
-        // Load multiple graph cards from template
-        grid.innerHTML = components['graph-card'].repeat(6);
-    } else {
-        grid.innerHTML = `
-            <div class="graph-card">
-                <div class="graph-image">
-                    <i class="fas fa-chart-line fa-3x"></i>
-                </div>
-                <div class="graph-content">
-                    <h3 class="font-semibold mb-2">Sample Graph</h3>
-                    <p class="text-sm text-gray mb-4">This is a sample graph description.</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray">125 views</span>
-                        ${Features.favorites ? '<button class="favorite-btn">♥</button>' : ''}
-                    </div>
+    grid.innerHTML = `
+        <div class="graph-card">
+            <div class="graph-image">
+                <i class="fas fa-chart-line fa-3x"></i>
+            </div>
+            <div class="graph-content">
+                <h3 class="font-semibold mb-2">Wave Interference Pattern</h3>
+                <p class="text-sm text-gray mb-4">Visualization of wave interference in physics.</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray">1,247 views</span>
+                    <button class="btn btn-sm">View</button>
                 </div>
             </div>
-        `.repeat(6);
-    }
+        </div>
+        
+        <div class="graph-card">
+            <div class="graph-image">
+                <i class="fas fa-atom fa-3x"></i>
+            </div>
+            <div class="graph-content">
+                <h3 class="font-semibold mb-2">Chemical Bonding</h3>
+                <p class="text-sm text-gray mb-4">Different types of chemical bonds visualization.</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray">856 views</span>
+                    <button class="btn btn-sm">View</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="graph-card">
+            <div class="graph-image">
+                <i class="fas fa-dna fa-3x"></i>
+            </div>
+            <div class="graph-content">
+                <h3 class="font-semibold mb-2">DNA Structure</h3>
+                <p class="text-sm text-gray mb-4">Double helix structure of DNA molecule.</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray">1,542 views</span>
+                    <button class="btn btn-sm">View</button>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function handleSearch() {
-    console.log('Search functionality');
+    alert('Search functionality will be implemented!');
+}
+
+function showSubjects() {
+    alert('Subjects browsing will be implemented!');
 }
 
 // Auth Functions
@@ -440,7 +309,6 @@ function updateAuthUI() {
         authButtons.innerHTML = `
             <div class="flex items-center gap-4">
                 <span>Hello, ${currentUser.displayName || currentUser.email}</span>
-                ${Features.userProfile ? '<button class="btn btn-outline" onclick="showProfile()"><i class="fas fa-user"></i></button>' : ''}
                 <button class="btn btn-danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         `;
