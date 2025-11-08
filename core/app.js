@@ -18,6 +18,9 @@ class GraphzApp {
         // Auto-discover and load features
         await this.discoverFeatures();
         
+        // Initialize features
+        await this.initializeFeatures();
+        
         // Initialize router
         await this.initRouter();
         
@@ -29,7 +32,6 @@ class GraphzApp {
 
     async loadCoreModules() {
         try {
-            // Dynamic imports for core modules
             const modules = {
                 firebase: await import('./firebase.js'),
                 router: await import('./router.js')
@@ -46,7 +48,6 @@ class GraphzApp {
 
     async discoverFeatures() {
         try {
-            // Feature manifest - in production, this would be auto-generated
             const featureManifest = [
                 { name: 'header', path: './features/header/header.js' },
                 { name: 'auth', path: './features/auth/auth.js' },
@@ -57,7 +58,8 @@ class GraphzApp {
             for (const feature of featureManifest) {
                 try {
                     const module = await import(feature.path);
-                    this.registerFeature(feature.name, module.default);
+                    this.features.set(feature.name, module.default);
+                    console.log(`🧩 Feature discovered: ${feature.name}`);
                 } catch (error) {
                     console.warn(`⚠️ Feature ${feature.name} not found:`, error);
                 }
@@ -67,21 +69,36 @@ class GraphzApp {
         }
     }
 
-    registerFeature(name, featureClass) {
-        if (this.features.has(name)) {
-            console.warn(`Feature ${name} already registered`);
-            return;
+    // ✅ Updated feature initialization
+    async initializeFeatures() {
+        for (const [name, FeatureClass] of this.features) {
+            try {
+                const featureInstance = new FeatureClass(this);
+                this.features.set(name, featureInstance);
+                
+                if (featureInstance.init) {
+                    await featureInstance.init();
+                }
+                console.log(`✅ Initialized: ${name}`);
+            } catch (error) {
+                console.error(`❌ Failed to initialize ${name}:`, error);
+            }
         }
+    }
 
-        const featureInstance = new featureClass(this);
-        this.features.set(name, featureInstance);
+    // ✅ Updated event emitter
+    emit(event, data) {
+        console.log(`📢 Emitting event: ${event}`, data);
         
-        console.log(`✅ Feature registered: ${name}`);
-        
-        // Auto-initialize feature
-        if (featureInstance.init) {
-            featureInstance.init();
-        }
+        this.features.forEach((featureInstance, name) => {
+            if (featureInstance.onEvent) {
+                try {
+                    featureInstance.onEvent(event, data);
+                } catch (error) {
+                    console.error(`Error in feature ${name} for event ${event}:`, error);
+                }
+            }
+        });
     }
 
     getFeature(name) {
@@ -104,21 +121,12 @@ class GraphzApp {
         if (firebase) {
             firebase.auth.onAuthStateChanged((user) => {
                 this.user = user;
-                this.notifyFeatures('authStateChanged', user);
+                this.emit('authStateChanged', user);
             });
         }
     }
 
-    // Event system for feature communication
-    notifyFeatures(event, data) {
-        this.features.forEach(feature => {
-            if (feature.onEvent) {
-                feature.onEvent(event, data);
-            }
-        });
-    }
-
-    // Utility methods for features
+    // Utility methods
     showLoading() {
         document.getElementById('app').innerHTML = `
             <div class="loading">
