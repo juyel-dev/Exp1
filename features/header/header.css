@@ -73,6 +73,11 @@
     font-weight: 600;
 }
 
+/* Search trigger button styles */
+.search-trigger-btn {
+    margin-right: 0.5rem;
+}
+
 @media (max-width: 768px) {
     .header-content {
         flex-direction: column;
@@ -81,5 +86,14 @@
     
     .main-nav ul {
         gap: 1rem;
+    }
+    
+    /* Mobile styles for search trigger button */
+    .search-trigger-btn span {
+        display: none;
+    }
+    
+    .search-trigger-btn {
+        padding: 0.5rem;
     }
 }
