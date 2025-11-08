@@ -1,125 +1,57 @@
-// Header Feature - Auto-registering
 export default class HeaderFeature {
     constructor(app) {
         this.app = app;
         this.name = 'header';
-        this.user = null;
     }
 
     async init() {
-        console.log('✅ Header feature initializing...');
+        // Load HTML
+        const html = await this.loadHTML();
+        document.getElementById('app').insertAdjacentHTML('afterbegin', html);
         
-        // Load HTML template
-        await this.loadTemplate();
+        // Load CSS
+        this.loadCSS();
         
-        // Setup event listeners
-        this.setupEventListeners();
+        // Setup events
+        this.setupEvents();
         
-        // Register with router
-        this.registerRoutes();
-        
-        console.log('✅ Header feature ready!');
+        console.log('✅ Header loaded');
     }
 
-    async loadTemplate() {
-        try {
-            const response = await fetch('./features/header/header.html');
-            const html = await response.text();
-            
-            // Inject at the top of app
-            const app = document.getElementById('app');
-            app.insertAdjacentHTML('afterbegin', html);
-            
-            // Load CSS
-            this.loadCSS();
-        } catch (error) {
-            console.error('❌ Header template loading failed:', error);
-        }
+    async loadHTML() {
+        return `
+            <header style="
+                background: white; padding: 1rem; 
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                display: flex; justify-content: space-between;
+                align-items: center;
+            ">
+                <div class="logo" style="font-size: 1.5rem; font-weight: bold; color: #4f46e5;">
+                    📊 Graphz
+                </div>
+                <nav>
+                    <a href="#home" style="margin: 0 1rem; text-decoration: none; color: #333;">Home</a>
+                    <a href="#graphs" style="margin: 0 1rem; text-decoration: none; color: #333;">Graphs</a>
+                    <button onclick="alert('Login clicked')" style="padding: 0.5rem 1rem; background: #4f46e5; color: white; border: none; border-radius: 0.5rem;">Login</button>
+                </nav>
+            </header>
+        `;
     }
 
     loadCSS() {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = './features/header/header.css';
-        document.head.appendChild(link);
+        const style = document.createElement('style');
+        style.textContent = `
+            header { position: sticky; top: 0; z-index: 100; }
+            .logo { display: flex; align-items: center; gap: 0.5rem; }
+        `;
+        document.head.appendChild(style);
     }
 
-    setupEventListeners() {
-        // Delegate navigation clicks
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('.nav-link')) {
-                e.preventDefault();
-                const route = e.target.dataset.route;
-                this.app.getModule('router').navigate(route);
-            }
-            
-            if (e.target.matches('.login-btn')) {
-                this.app.notifyFeatures('showAuthModal');
-            }
-            
-            if (e.target.matches('.logout-btn')) {
-                this.app.getModule('firebase').auth.signOut();
-            }
-        });
-    }
-
-    registerRoutes() {
-        const router = this.app.getModule('router');
-        if (router) {
-            // Header doesn't handle routes directly, but updates navigation
-        }
+    setupEvents() {
+        // Header specific events
     }
 
     onEvent(event, data) {
-        switch (event) {
-            case 'authStateChanged':
-                this.handleAuthChange(data);
-                break;
-            case 'routeChange':
-                this.updateActiveNav(data.route);
-                break;
-        }
-    }
-
-    handleAuthChange(user) {
-        this.user = user;
-        const authButtons = document.querySelector('.auth-buttons');
-        const userMenu = document.querySelector('.user-menu');
-        const navAuth = document.querySelector('.nav-auth');
-        const navAdmin = document.querySelector('.nav-admin');
-        const userAvatar = document.querySelector('.user-avatar');
-
-        if (user) {
-            // User is logged in
-            authButtons.style.display = 'none';
-            userMenu.style.display = 'flex';
-            navAuth.style.display = 'list-item';
-            
-            // Update avatar
-            if (userAvatar) {
-                userAvatar.textContent = user.displayName ? 
-                    user.displayName.charAt(0).toUpperCase() : 
-                    user.email.charAt(0).toUpperCase();
-            }
-            
-            // Show admin nav if user is admin
-            // This would check user role from Firestore
-            if (user.email === 'admin@graphz.com') {
-                navAdmin.style.display = 'list-item';
-            }
-        } else {
-            // User is logged out
-            authButtons.style.display = 'flex';
-            userMenu.style.display = 'none';
-            navAuth.style.display = 'none';
-            navAdmin.style.display = 'none';
-        }
-    }
-
-    updateActiveNav(route) {
-        // Update active nav link
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.toggle('active', link.dataset.route === route);
-        });
+        console.log(`Header received: ${event}`, data);
     }
 }
