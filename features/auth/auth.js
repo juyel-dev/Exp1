@@ -1,162 +1,27 @@
-// Auth Feature - Self-contained authentication system
 export default class AuthFeature {
     constructor(app) {
         this.app = app;
         this.name = 'auth';
-        this.modal = null;
     }
 
     async init() {
-        console.log('✅ Auth feature initializing...');
-        
-        // Load template
-        await this.loadTemplate();
-        
-        // Setup event listeners
-        this.setupEventListeners();
-        
-        console.log('✅ Auth feature ready!');
+        console.log('✅ Auth system ready');
+        // Auth will be loaded but only show when needed
     }
 
-    async loadTemplate() {
-        try {
-            const response = await fetch('./features/auth/auth.html');
-            const html = await response.text();
-            
-            // Inject at the end of body
-            document.body.insertAdjacentHTML('beforeend', html);
-            this.modal = document.getElementById('auth-modal');
-            
-            // Load CSS
-            this.loadCSS();
-        } catch (error) {
-            console.error('❌ Auth template loading failed:', error);
-        }
+    showLogin() {
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+                <div style="background: white; padding: 2rem; border-radius: 1rem; width: 400px;">
+                    <h2>Login to Graphz</h2>
+                    <input type="email" placeholder="Email" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 0.5rem;">
+                    <input type="password" placeholder="Password" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 0.5rem;">
+                    <button style="width: 100%; padding: 0.75rem; background: #4f46e5; color: white; border: none; border-radius: 0.5rem; margin-top: 1rem;">Login</button>
+                    <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 0.75rem; background: #666; color: white; border: none; border-radius: 0.5rem; margin-top: 0.5rem;">Close</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
-
-    loadCSS() {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = './features/auth/auth.css';
-        document.head.appendChild(link);
-    }
-
-    setupEventListeners() {
-        // Modal controls
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('.modal-close') || e.target === this.modal) {
-                this.hideModal();
-            }
-            
-            if (e.target.matches('.auth-tab')) {
-                this.switchTab(e.target.dataset.tab);
-            }
-            
-            if (e.target.matches('.forgot-password')) {
-                e.preventDefault();
-                this.showForgotPassword();
-            }
-        });
-
-        // Form submissions
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
-
-        document.getElementById('signup-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleSignup();
-        });
-    }
-
-    onEvent(event, data) {
-        if (event === 'showAuthModal') {
-            this.showModal();
-        }
-    }
-
-    showModal() {
-        if (this.modal) {
-            this.modal.style.display = 'flex';
-            this.switchTab('login');
-        }
-    }
-
-    hideModal() {
-        if (this.modal) {
-            this.modal.style.display = 'none';
-            // Reset forms
-            document.getElementById('login-form').reset();
-            document.getElementById('signup-form').reset();
-        }
-    }
-
-    switchTab(tab) {
-        // Update tabs
-        document.querySelectorAll('.auth-tab').forEach(t => {
-            t.classList.toggle('active', t.dataset.tab === tab);
-        });
-        
-        // Show correct form
-        document.getElementById('login-form').style.display = 
-            tab === 'login' ? 'block' : 'none';
-        document.getElementById('signup-form').style.display = 
-            tab === 'signup' ? 'block' : 'none';
-    }
-
-    async handleLogin() {
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        
-        try {
-            const firebase = this.app.getModule('firebase');
-            await firebase.auth.signInWithEmailAndPassword(email, password);
-            this.hideModal();
-        } catch (error) {
-            alert('Login failed: ' + error.message);
-        }
-    }
-
-    async handleSignup() {
-        const name = document.getElementById('signup-name').value;
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        
-        try {
-            const firebase = this.app.getModule('firebase');
-            const userCredential = await firebase.auth.createUserWithEmailAndPassword(email, password);
-            
-            // Update profile
-            await userCredential.user.updateProfile({
-                displayName: name
-            });
-            
-            // Save to Firestore
-            await firebase.db.collection('users').doc(userCredential.user.uid).set({
-                displayName: name,
-                email: email,
-                createdAt: new Date()
-            });
-            
-            this.hideModal();
-            alert('Account created successfully!');
-        } catch (error) {
-            alert('Signup failed: ' + error.message);
-        }
-    }
-
-    showForgotPassword() {
-        const email = prompt('Enter your email address:');
-        if (email) {
-            const firebase = this.app.getModule('firebase');
-            firebase.auth.sendPasswordResetEmail(email)
-                .then(() => {
-                    alert('Password reset email sent!');
-                })
-                .catch(error => {
-                    alert('Error: ' + error.message);
-                });
-        }
-    }
-    }
+}
