@@ -198,10 +198,11 @@ export default class HeaderFeature {
     setupEventListeners() {
         // Navigation clicks
         document.addEventListener('click', (e) => {
-            if (e.target.matches('.nav-link')) {
+            const navLink = e.target.closest('.nav-link');
+            if (navLink) {
                 e.preventDefault();
-                const route = e.target.dataset.route;
-                this.handleNavigation(route);
+                const route = navLink.dataset.route;
+                this.handleNavigation(route, navLink);
             }
             
             if (e.target.matches('.login-btn') || e.target.closest('.login-btn')) {
@@ -214,16 +215,23 @@ export default class HeaderFeature {
         });
     }
 
-    handleNavigation(route) {
+    handleNavigation(route, clickedElement) {
         // Update active nav link
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
         });
         
-        event.target.classList.add('active');
+        clickedElement.classList.add('active');
         
         // Notify other features about route change
         this.app.emit('routeChange', { route, data: null });
+        
+        // Special handling for home route
+        if (route === 'home') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        console.log(`📍 Navigation: ${route}`);
     }
 
     handleLoginClick() {
@@ -247,7 +255,20 @@ export default class HeaderFeature {
             case 'adminAccessGranted':
                 this.handleAdminAccess();
                 break;
+            case 'routeChange':
+                // Update active nav based on route change from other features
+                this.updateActiveNav(data.route);
+                break;
         }
+    }
+
+    updateActiveNav(route) {
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.dataset.route === route) {
+                link.classList.add('active');
+            }
+        });
     }
 
     handleUserLoggedIn(user) {
@@ -261,9 +282,9 @@ export default class HeaderFeature {
         // Update avatar
         const avatar = document.querySelector('.user-avatar');
         if (user.displayName) {
-            avatar.innerHTML = user.displayName.charAt(0).toUpperCase();
+            avatar.textContent = user.displayName.charAt(0).toUpperCase();
         } else if (user.email) {
-            avatar.innerHTML = user.email.charAt(0).toUpperCase();
+            avatar.textContent = user.email.charAt(0).toUpperCase();
         }
     }
 
