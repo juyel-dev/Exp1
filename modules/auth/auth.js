@@ -1,109 +1,106 @@
-// Auth Module - Handles authentication
 export class AuthModule {
     static async init(eventBus) {
+        console.log('🔐 Auth Module initializing...');
         this.eventBus = eventBus;
-        this.currentUser = null;
-        
-        console.log('🔐 Auth Module initialized');
         
         // Set up auth state listener
-        this.setupAuthListener();
+        firebase.auth().onAuthStateChanged((user) => {
+            this.currentUser = user;
+            this.updateAuthUI();
+            eventBus.emit('auth:state-changed', user);
+        });
+
+        // Listen for auth events
+        eventBus.on('auth:show-modal', () => this.showAuthModal());
+        eventBus.on('auth:login', (data) => this.handleLogin(data));
+        eventBus.on('auth:signup', (data) => this.handleSignup(data));
+        eventBus.on('auth:logout', () => this.handleLogout());
         
+        console.log('✅ Auth Module ready');
         return this;
     }
 
-    static setupAuthListener() {
-        firebase.auth().onAuthStateChanged(async (user) => {
-            this.currentUser = user;
-            
-            if (user) {
-                await this.handleUserLogin(user);
-            } else {
-                this.handleUserLogout();
-            }
-            
-            this.eventBus.emit('user-changed', this.currentUser);
-        });
-    }
-
-    static async handleUserLogin(user) {
-        console.log('👤 User logged in:', user.email);
+    static updateAuthUI() {
+        const authButtons = document.getElementById('auth-buttons');
         
-        // Create/update user profile in Firestore
-        await this.updateUserProfile(user);
+        if (this.currentUser) {
+            authButtons.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <span>Hello, ${this.currentUser.displayName || this.currentUser.email}</span>
+                    <button class="btn btn-danger" onclick="app.eventBus.emit('auth:logout')">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            authButtons.innerHTML = `
+                <button class="btn btn-outline" onclick="app.eventBus.emit('auth:show-modal')">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            `;
+        }
+    }
+
+    static showAuthModal() {
+        const modalHTML = `
+            <div class="modal" style="display: flex;">
+                <div class="modal-content p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Login to GraphzLive</h2>
+                        <button onclick="this.closest('.modal').style.display='none'" class="btn btn-outline">✕</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="auth-email" placeholder="your@email.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="auth-password" placeholder="••••••••">
+                    </div>
+                    
+                    <button class="btn w-full mb-4" onclick="app.eventBus.emit('auth:login', {
+                        email: document.getElementById('auth-email').value,
+                        password: document.getElementById('auth-password').value
+                    })">Sign In</button>
+                    
+                    <button class="btn btn-outline w-full" onclick="app.eventBus.emit('auth:signup', {
+                        email: document.getElementById('auth-email').value,
+                        password: document.getElementById('auth-password').value,
+                        displayName: 'New User'
+                    })">Create Account</button>
+                </div>
+            </div>
+        `;
         
-        // Update UI through event bus
-        this.eventBus.emit('auth:login', user);
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
-    static handleUserLogout() {
-        console.log('👤 User logged out');
-        this.eventBus.emit('auth:logout');
+    static async handleLogin({ email, password }) {
+        try {
+            await firebase.auth().signInWithEmailAndPassword(email, password);
+            document.querySelector('.modal')?.remove();
+        } catch (error) {
+            alert('Login failed: ' + error.message);
+        }
     }
 
-    static async signUp(email, password, userData) {
+    static async handleSignup({ email, password, displayName }) {
         try {
             const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-            await userCredential.user.updateProfile({ displayName: userData.displayName });
-            
-            await firebase.firestore().collection('users').doc(userCredential.user.uid).set({
-                ...userData,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                role: 'user'
-            });
-            
-            return { success: true, user: userCredential.user };
-            
+            await userCredential.user.updateProfile({ displayName });
+            document.querySelector('.modal')?.remove();
         } catch (error) {
-            return { success: false, error: error.message };
+            alert('Signup failed: ' + error.message);
         }
     }
 
-    static async signIn(email, password) {
-        try {
-            const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-            return { success: true, user: userCredential.user };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    static async signInWithGoogle() {
-        try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            const userCredential = await firebase.auth().signInWithPopup(provider);
-            return { success: true, user: userCredential.user };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    static async signOut() {
+    static async handleLogout() {
         await firebase.auth().signOut();
-    }
-
-    static async updateUserProfile(user) {
-        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-        
-        if (!userDoc.exists) {
-            await firebase.firestore().collection('users').doc(user.uid).set({
-                displayName: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                role: 'user'
-            });
-        }
     }
 }
 
-// Module exports
 export async function init(eventBus) {
     return await AuthModule.init(eventBus);
 }
-
-// Export individual methods for other modules
-export const signUp = AuthModule.signUp.bind(AuthModule);
-export const signIn = AuthModule.signIn.bind(AuthModule);
-export const signInWithGoogle = AuthModule.signInWithGoogle.bind(AuthModule);
-export const signOut = AuthModule.signOut.bind(AuthModule);
