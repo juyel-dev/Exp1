@@ -41,6 +41,10 @@ export default class HeaderFeature {
                     </nav>
                     
                     <div class="header-actions">
+                        <button class="btn btn-outline search-trigger-btn" id="header-search-trigger">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
                         <div class="auth-buttons">
                             <button class="btn btn-outline login-btn">
                                 <i class="fas fa-sign-in-alt"></i> Login
@@ -167,6 +171,18 @@ export default class HeaderFeature {
                 transform: translateY(-1px);
             }
             
+            .search-trigger-btn {
+                background: #f8fafc;
+                border-color: #d1d5db;
+                color: #374151;
+            }
+            
+            .search-trigger-btn:hover {
+                background: #4f46e5;
+                border-color: #4f46e5;
+                color: white;
+            }
+            
             .user-avatar {
                 width: 40px;
                 height: 40px;
@@ -190,6 +206,11 @@ export default class HeaderFeature {
                 .main-nav ul {
                     gap: 1rem;
                 }
+                
+                .header-actions {
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
             }
         `;
         document.head.appendChild(style);
@@ -211,6 +232,11 @@ export default class HeaderFeature {
             
             if (e.target.matches('.logout-btn') || e.target.closest('.logout-btn')) {
                 this.handleLogoutClick();
+            }
+            
+            // Search trigger button handler
+            if (e.target.matches('#header-search-trigger') || e.target.closest('#header-search-trigger')) {
+                this.app.emit('showSearchModal', {});
             }
         });
     }
