@@ -231,7 +231,9 @@ export default class HeaderFeature {
     }
 
     handleLogoutClick() {
-        this.app.emit('userLogout', {});
+        if (confirm('Are you sure you want to logout?')) {
+            this.app.emit('userLogout', {});
+        }
     }
 
     onEvent(event, data) {
