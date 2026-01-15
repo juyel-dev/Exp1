@@ -3,127 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graphz - Auto-Discovery Platform</title>
+    <title>AI Printable Creator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* Basic loading styles */
-        .loading { 
-            display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; 
-            height: 100vh; 
-        }
-        .loader { 
-            width: 40px; height: 40px; 
-            border: 4px solid #f3f3f3; 
-            border-top: 4px solid #4f46e5; 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-        }
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
+        :root { --p: #2563eb; --bg: #f8fafc; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); width: 100%; max-width: 400px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: var(--p); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #output { width: 100%; margin-top: 20px; border-radius: 10px; display: none; border: 2px solid #eee; }
+        .loader { display: none; margin: 10px; color: var(--p); font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="loading">
-            <div class="loader"></div>
-            <p>Loading Graphz...</p>
-        </div>
+
+    <div class="card">
+        <h2>🎨 AI Print Generator</h2>
+        <p style="font-size: 0.9rem; color: #666;">যা প্রিন্ট করতে চান তা লিখুন (যেমন: 'Mandala art for coloring')</p>
+        <input type="text" id="prompt" placeholder="Enter your idea here...">
+        <button onclick="generateImage()">Generate AI Art</button>
+        <div id="loader" class="loader">AI ভাবছে... (১০-১৫ সেকেন্ড সময় লাগতে পারে)</div>
+        <img id="output" alt="Generated AI Art">
+        <button id="printBtn" style="display:none; background: #059669;" onclick="downloadPDF()">Download as Printable PDF</button>
     </div>
 
-    <script type="module">
-        // ✅ Zero-Edit Auto Discovery System
-        class GraphzApp {
-            constructor() {
-                this.features = new Map();
-                this.init();
-            }
+    <script>
+        // আপনি Hugging Face থেকে একটি ফ্রি API Key নিয়ে এখানে বসাতে পারেন। 
+        // নিচেরটি একটি ডেমো এন্ডপয়েন্ট।
+        const API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5";
+        
+        async function generateImage() {
+            const prompt = document.querySelector("#prompt").value;
+            if(!prompt) return alert("কিছু তো লিখুন!");
 
-            async init() {
-                console.log('🚀 Starting Auto-Discovery...');
-                
-                // Step 1: Auto-discover all features
-                await this.discoverFeatures();
-                
-                // Step 2: Initialize all features
-                await this.initializeFeatures();
-                
-                // Step 3: Hide loading
-                this.hideLoading();
-                
-                console.log('✅ Graphz Ready! Loaded features:', [...this.features.keys()]);
-            }
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('output').style.display = 'none';
+            document.getElementById('printBtn').style.display = 'none';
 
-            async discoverFeatures() {
-                // This is the magic - no hardcoded list!
-                const featureFolders = await this.scanFeaturesFolder();
-                
-                for (const folder of featureFolders) {
-                    try {
-                        const module = await import(`./features/${folder}/${folder}.js`);
-                        this.features.set(folder, module.default);
-                        console.log(`✅ Discovered: ${folder}`);
-                    } catch (error) {
-                        console.log(`⏭️  Skipping ${folder}: ${error.message}`);
-                    }
-                }
-            }
-
-            async scanFeaturesFolder() {
-                // In a real app, this would scan the filesystem
-                // For now, we'll simulate by trying common feature names
-                const possibleFeatures = [
-                    'header', 'auth', 'home', 'search', 
-                    'graph-grid', 'profile', 'admin', 'donation'
-                ];
-                
-                const discovered = [];
-                
-                for (const feature of possibleFeatures) {
-                    try {
-                        // Try to load the feature to see if it exists
-                        await import(`./features/${feature}/${feature}.js`);
-                        discovered.push(feature);
-                    } catch (error) {
-                        // Feature doesn't exist, skip it
-                    }
-                }
-                
-                return discovered;
-            }
-
-            async initializeFeatures() {
-                for (const [name, FeatureClass] of this.features) {
-                    try {
-                        const featureInstance = new FeatureClass(this);
-                        if (featureInstance.init) {
-                            await featureInstance.init();
-                        }
-                        console.log(`✅ Initialized: ${name}`);
-                    } catch (error) {
-                        console.error(`❌ Failed to initialize ${name}:`, error);
-                    }
-                }
-            }
-
-            hideLoading() {
-                const loading = document.querySelector('.loading');
-                if (loading) loading.style.display = 'none';
-            }
-
-            // Feature communication
-            emit(event, data) {
-                this.features.forEach(feature => {
-                    if (feature.instance && feature.instance.onEvent) {
-                        feature.instance.onEvent(event, data);
-                    }
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ inputs: prompt + ", high resolution, black and white outline for coloring, sharp lines" }),
                 });
+
+                const blob = await response.blob();
+                const imgUrl = URL.createObjectURL(blob);
+                
+                const imgDisplay = document.getElementById('output');
+                imgDisplay.src = imgUrl;
+                imgDisplay.style.display = 'block';
+                document.getElementById('printBtn').style.display = 'block';
+            } catch (e) {
+                alert("Error: " + e.message);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
             }
         }
 
-        // Start the app
-        new GraphzApp();
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const img = document.getElementById('output');
+            
+            doc.text("My AI Generated Printable", 10, 10);
+            doc.addImage(img, 'JPEG', 10, 20, 190, 190);
+            doc.save("ai-print.pdf");
+        }
     </script>
 </body>
 </html>
